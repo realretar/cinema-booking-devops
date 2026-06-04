@@ -63,7 +63,7 @@ spring:
     activate:
       on-profile: dev
   datasource:
-    url: jdbc:postgresql://localhost:5432/cinemadb
+    url: jdbc:postgresql://192.168.100.41:5432/cinemadb
     username: postgres
     password: postgres
     driver-class-name: org.postgresql.Driver
