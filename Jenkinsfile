@@ -29,7 +29,7 @@ pipeline {
         stage('3. Deploy') {
             steps {
                 echo 'Copying compiled JAR files to App Nodes with SCP'
-                // We use a wildcard (*) because Maven names the file based on the version in pom.xml
+                // We use * because Maven names the file based on the version in pom.xml
                 sh "scp target/*.jar ${APP_USER}@${NODE_01}:${DEPLOY_DIR}/cinema-booking.jar"
                 sh "scp target/*.jar ${APP_USER}@${NODE_02}:${DEPLOY_DIR}/cinema-booking.jar"
             }
@@ -39,22 +39,8 @@ pipeline {
             steps {
                 echo 'Restarting Spring Boot services on App Nodes'
                 
-                // Node 01
-                // Stop any old version running to free up port 8080, then launch the new one in the background
-                sh """
-                    ssh ${APP_USER}@${NODE_01} '
-                        pkill -f cinema-booking.jar || true
-                        nohup java -jar ${DEPLOY_DIR}/cinema-booking.jar --spring.profiles.active=dev > ${DEPLOY_DIR}/app.log 2>&1 &
-                    '
-                """
-
-                // Node 02
-                sh """
-                    ssh ${APP_USER}@${NODE_02} '
-                        pkill -f cinema-booking.jar || true
-                        nohup java -jar ${DEPLOY_DIR}/cinema-booking.jar --spring.profiles.active=dev > ${DEPLOY_DIR}/app.log 2>&1 &
-                    '
-                """
+                sh "ssh -n -o StrictHostKeyChecking=no ${APP_USER}@${NODE_01} bash ${DEPLOY_DIR}/restart-app.sh"
+                sh "ssh -n -o StrictHostKeyChecking=no ${APP_USER}@${NODE_02} bash ${DEPLOY_DIR}/restart-app.sh"
             }
         }
     }
